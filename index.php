@@ -5,10 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lesson Plan Maker</title>
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Lesson Plan Maker</h1>
+        <div class="header">
+            <h1>Lesson Plan Maker</h1>
+            <div class="theme-switcher" id="theme-switcher">🌙</div>
+        </div>
         <form id="lesson-plan-form" action="generate.php" method="post">
             <div class="form-group">
                 <label for="template">Select Template:</label>
@@ -89,10 +93,14 @@
                     <textarea id="performance_standards" name="performance_standards" rows="4"></textarea>
                 </div>
             </div>
-            <div class="form-group">
-                <button type="submit">Generate PDF</button>
+            <div class="form-group button-group">
+                <button type="submit" class="button button-primary">Generate PDF</button>
+                <button type="button" id="save-button" class="button button-secondary">Save</button>
+                <button type="button" id="load-button" class="button button-secondary">Load</button>
+                <button type="button" id="reset-button" class="button button-secondary">Reset</button>
             </div>
         </form>
+        <div id="loading-indicator">Generating PDF...</div>
     </div>
     <script src="js/script.js"></script>
 </body>

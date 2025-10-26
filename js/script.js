@@ -3,13 +3,51 @@ document.addEventListener('DOMContentLoaded', function() {
     var commonFields = document.getElementById('common-fields');
     var detailedFields = document.getElementById('detailed-fields');
     var depedFields = document.getElementById('deped-fields');
+    var themeSwitcher = document.getElementById('theme-switcher');
+    var form = document.getElementById('lesson-plan-form');
+    var loadingIndicator = document.getElementById('loading-indicator');
+    var saveButton = document.getElementById('save-button');
+    var loadButton = document.getElementById('load-button');
+    var resetButton = document.getElementById('reset-button');
+    var errorMessage = document.createElement('div');
+    errorMessage.id = 'error-message';
+    errorMessage.style.display = 'none';
+    form.insertBefore(errorMessage, form.firstChild);
 
+    // Initialize TinyMCE
+    function initTinyMCE(theme) {
+        tinymce.init({
+            selector: 'textarea',
+            plugins: 'lists link table',
+            toolbar: 'undo redo | bold italic | bullist numlist | link table',
+            skin: (theme === 'dark') ? 'oxide-dark' : 'oxide',
+            content_css: (theme === 'dark') ? 'dark' : 'default'
+        });
+    }
+
+    initTinyMCE(document.documentElement.getAttribute('data-theme'));
+
+    // Theme switcher
+    themeSwitcher.addEventListener('click', function() {
+        var currentTheme = document.documentElement.getAttribute('data-theme');
+        if (currentTheme === 'dark') {
+            document.documentElement.removeAttribute('data-theme');
+            themeSwitcher.textContent = '🌙';
+            tinymce.remove();
+            initTinyMCE('light');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeSwitcher.textContent = '☀️';
+            tinymce.remove();
+            initTinyMCE('dark');
+        }
+    });
+
+    // Template visibility
     templateSelect.addEventListener('change', function() {
-        // Hide all template-specific fields
         detailedFields.style.display = 'none';
         depedFields.style.display = 'none';
 
-        // Hide procedure for detailed
         var procedure = commonFields.querySelector('#procedure').parentNode;
         procedure.style.display = 'block';
 
@@ -21,7 +59,55 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    document.getElementById('lesson-plan-form').addEventListener('submit', function(event) {
+    // Save and Load functionality
+    saveButton.addEventListener('click', function() {
+        tinymce.triggerSave();
+        var formData = new FormData(form);
+        var data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+        localStorage.setItem('lessonPlanData', JSON.stringify(data));
+        alert('Lesson plan saved!');
+    });
+
+    loadButton.addEventListener('click', function() {
+        var data = JSON.parse(localStorage.getItem('lessonPlanData'));
+        if (data) {
+            for (var key in data) {
+                if (data.hasOwnProperty(key)) {
+                    var element = document.getElementById(key);
+                    if (element) {
+                        element.value = data[key];
+                        if (element.tagName.toLowerCase() === 'textarea') {
+                            tinymce.get(key).setContent(data[key]);
+                        }
+                    }
+                }
+            }
+            templateSelect.dispatchEvent(new Event('change'));
+            alert('Lesson plan loaded!');
+        } else {
+            alert('No saved data found.');
+        }
+    });
+
+    // Reset functionality
+    resetButton.addEventListener('click', function() {
+        form.reset();
+        tinymce.get().forEach(function(editor) {
+            editor.setContent('');
+        });
+        templateSelect.dispatchEvent(new Event('change'));
+        alert('Form cleared!');
+    });
+
+    // Form validation and loading indicator
+    form.addEventListener('submit', function(event) {
+        tinymce.triggerSave();
+        errorMessage.style.display = 'none';
+        errorMessage.innerHTML = '';
+
         var template = templateSelect.value;
         var requiredFields = ['teacher_name', 'subject', 'topic', 'objectives', 'materials', 'evaluation'];
 
@@ -35,9 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
             requiredFields.push('school_name', 'teaching_dates', 'grade_level', 'quarter', 'content_standards', 'performance_standards');
         }
 
-
         var emptyFields = [];
-
         requiredFields.forEach(function(field) {
             var input = document.getElementById(field);
             if (input && input.value.trim() === '') {
@@ -47,7 +131,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (emptyFields.length > 0) {
             event.preventDefault();
-            alert('Please fill out all required fields: ' + emptyFields.join(', '));
+            errorMessage.innerHTML = 'Please fill out all required fields: ' + emptyFields.join(', ') + '<span class="close-btn">&times;</span>';
+            errorMessage.style.display = 'block';
+
+            errorMessage.querySelector('.close-btn').addEventListener('click', function() {
+                errorMessage.style.display = 'none';
+            });
+        } else {
+            loadingIndicator.style.display = 'block';
         }
     });
 });
