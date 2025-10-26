@@ -9,10 +9,19 @@ document.addEventListener('DOMContentLoaded', function() {
     var saveButton = document.getElementById('save-button');
     var loadButton = document.getElementById('load-button');
     var resetButton = document.getElementById('reset-button');
+    var notification = document.getElementById('notification');
     var errorMessage = document.createElement('div');
     errorMessage.id = 'error-message';
     errorMessage.style.display = 'none';
     form.insertBefore(errorMessage, form.firstChild);
+
+    function showNotification(message, type = 'success') {
+        notification.textContent = message;
+        notification.className = 'show ' + type;
+        setTimeout(function() {
+            notification.className = notification.className.replace('show', '');
+        }, 3000);
+    }
 
     // Initialize TinyMCE
     function initTinyMCE(theme) {
@@ -68,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data[key] = value;
         });
         localStorage.setItem('lessonPlanData', JSON.stringify(data));
-        alert('Lesson plan saved!');
+        showNotification('Lesson plan saved successfully!');
     });
 
     loadButton.addEventListener('click', function() {
@@ -86,20 +95,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             templateSelect.dispatchEvent(new Event('change'));
-            alert('Lesson plan loaded!');
+            showNotification('Lesson plan loaded successfully!');
         } else {
-            alert('No saved data found.');
+            showNotification('No saved data found.', 'error');
         }
     });
 
     // Reset functionality
     resetButton.addEventListener('click', function() {
         form.reset();
-        tinymce.get().forEach(function(editor) {
-            editor.setContent('');
-        });
+        for (var i = 0; i < tinymce.editors.length; i++) {
+            tinymce.editors[i].setContent('');
+        }
         templateSelect.dispatchEvent(new Event('change'));
-        alert('Form cleared!');
+        showNotification('Form cleared successfully!');
     });
 
     // Form validation and loading indicator

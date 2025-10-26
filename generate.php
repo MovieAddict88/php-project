@@ -1,7 +1,35 @@
 <?php
+session_start();
 require_once('vendor/tcpdf/tcpdf.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Server-side validation
+    $errors = [];
+    $required_fields = ['teacher_name', 'subject', 'topic', 'objectives', 'materials', 'evaluation'];
+    $template = $_POST['template'];
+
+    if ($template === 'detailed') {
+        $required_fields = array_merge($required_fields, ['teacher_activity', 'student_activity']);
+    } else {
+        $required_fields[] = 'procedure';
+    }
+
+    if ($template === 'deped') {
+        $required_fields = array_merge($required_fields, ['school_name', 'teaching_dates', 'grade_level', 'quarter', 'content_standards', 'performance_standards']);
+    }
+
+    foreach ($required_fields as $field) {
+        if (empty($_POST[$field])) {
+            $errors[] = ucfirst(str_replace('_', ' ', $field)) . ' is required.';
+        }
+    }
+
+    if (!empty($errors)) {
+        $_SESSION['errors'] = $errors;
+        $_SESSION['old_input'] = $_POST;
+        header('Location: index.php');
+        exit;
+    }
     // Sanitize and retrieve POST data
     $teacher_name = htmlspecialchars($_POST['teacher_name']);
     $subject = htmlspecialchars($_POST['subject']);
