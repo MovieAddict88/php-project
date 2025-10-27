@@ -1,0 +1,34 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+}
+
+header {
+    background: #333;
+    color: white;
+    padding: 1rem;
+}
+
+header h1 a {
+    color: white;
+    text-decoration: none;
+}
+
+main {
+    padding: 1rem;
+}
+
+.playlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.playlist-card {
+    border: 1px solid #ccc;
+    padding: 1rem;
+}
+
+.playlist-card img {
+    max-width: 100%;
+}
